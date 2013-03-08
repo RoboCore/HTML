@@ -37,6 +37,15 @@ GET::~GET(void){
 //    -2 if too much parameters, -3 if overflow of parameter string and
 //    -4 if overflow of value string)
 int GET::ParseAddress(const char* http_address){
+  return ParseAddress(http_address, NULL);
+}
+
+
+// Parse the HTTP address
+//  (returns the number of parameters parsed, -1 if given address is invalid,
+//    -2 if too much parameters, -3 if overflow of parameter string and
+//    -4 if overflow of value string)
+int GET::ParseAddress(const char* http_address, char* delimiters){
   //check if valid string
   int http_length = strlen(http_address);
   if(http_length <= 0)
@@ -50,9 +59,16 @@ int GET::ParseAddress(const char* http_address){
       _values[i][j] = NULL;
   }
   
+  //check if valid delimiters
+  int delimiters_length = strlen(delimiters);
+  boolean use_delimiters = false;
+  if(delimiters_length > 0)
+    use_delimiters = true;
+  
   boolean found_parameters = false; //TRUE when start of parameters
   boolean is_value = false; //TRUE when data is a value, FALSE when is a parameter
   boolean skip = false; //TRUE when has to skip a control character
+  boolean eos = false; //TRUE if End Of String (when using delimiters)
   byte str_size = 0; //counter to store in the parameters/values array
   int index = 0; //number of parameters found
   for(int i=0 ; i < http_length; i++){
@@ -94,21 +110,33 @@ int GET::ParseAddress(const char* http_address){
     
     //store data
     if(found_parameters && !skip){
-      if(is_value){ //add value
-        if(str_size < GET_VALUE_SIZE){
-          _values[index][str_size] = http_address[i]; //store
-          str_size++; //increase
-        } else {
-          index = -5; // (-4)
-          break;
+      //break on delimiters
+      if(use_delimiters){ //check whether to search or not
+        for(int j=0 ; j < delimiters_length ; j++){
+          if(http_address[i] == delimiters[j]){
+            eos = true; //reached end of string
+            break;
+          }
         }
-      } else { //add parameter
-        if(str_size < GET_PARAMETER_SIZE){
-          _parameters[index][str_size] = http_address[i]; //store
-          str_size++; //increase
-        } else {
-          index = -4; // (-3)
-          break;
+      }
+      
+      if(!eos){ //continue if not EOS
+        if(is_value){ //add value
+          if(str_size < GET_VALUE_SIZE){
+            _values[index][str_size] = http_address[i]; //store
+            str_size++; //increase
+          } else {
+            index = -5; // (-4)
+            break;
+          }
+        } else { //add parameter
+          if(str_size < GET_PARAMETER_SIZE){
+            _parameters[index][str_size] = http_address[i]; //store
+            str_size++; //increase
+          } else {
+            index = -4; // (-3)
+            break;
+          }
         }
       }
     }
@@ -116,6 +144,11 @@ int GET::ParseAddress(const char* http_address){
     //update skip
     if(skip)
       skip = false;
+    
+    
+    //exit on End Of String
+    if(eos)
+      break;
   }
   
   // only for debug
@@ -179,6 +212,7 @@ void GET::SetPrinter(HardwareSerial* printer){
 //-----------------------------------------------------------------------------------
 
 // Operator [] to search by index
+//  (returns NULL if index out of range)
 char* GET::operator[](const int index){
   //check if valid index
   if((index < 0) || (index >= GET_PARAMETER_QTY))
@@ -196,6 +230,7 @@ char* GET::operator[](const int index){
 //-----------------------------------------------------------------------------------
 
 // Operator [] to search by parameter
+//  (returns NULL if invalid parameter or not found)
 char* GET::operator[](const char* parameter){
   //check if valid size
   int length = strlen(parameter);

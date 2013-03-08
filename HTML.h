@@ -41,6 +41,7 @@ class GET{
     GET(void);
     ~GET(void);
     int ParseAddress(const char* http_address);
+    int ParseAddress(const char* http_address, char* delimiter);
     void SetPrinter(HardwareSerial* printer);
     char* operator[](const int index);
     char* operator[](const char* parameter);
