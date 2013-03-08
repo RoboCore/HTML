@@ -9,7 +9,7 @@
     
 */
 
-#include "HTML.h"
+#include <HTML.h>
 
 
 void setup(){
@@ -31,6 +31,8 @@ void setup(){
   Serial.println(myget[1]);
   Serial.print("* [3] = ");
   Serial.println(myget[3]);
+  Serial.print("* [-1] = ");
+  Serial.println(myget[-1]);
   
   Serial.print("* [arduino] = ");
   Serial.println(myget["arduino"]);
@@ -38,6 +40,10 @@ void setup(){
   Serial.println(myget["board"]);
   Serial.print("* [test] = ");
   Serial.println(myget["test"]);
+  Serial.print("* [ardu] = ");
+  Serial.println(myget["ardu"]);
+  Serial.print("* [arduinooo] = ");
+  Serial.println(myget["arduinooo"]);
   
   Serial.println("\n\tdone!");
 }
