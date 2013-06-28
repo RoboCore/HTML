@@ -3,6 +3,8 @@
     Test for the HTML library
             (08/03/13)
     
+    Written by François
+    
     An http address is created and parsed,
     then the values are retrieved either
     by index or by parameter
